@@ -21,7 +21,10 @@ const GOV_API_KEY = getEnvVar("GOV_INFO_API_KEY");
 
 const BATCH_SIZE = 100;
 const MAX_RETRIES = 3;
-const TIMEOUT_DELAY = 5000;
+
+// Add these constants at the top
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+const MAX_RETRY_DELAY = 32000; // 32 seconds
 
 // Add these interfaces at the top of the file
 interface GovBill {
@@ -44,28 +47,75 @@ interface BillRecord {
 	embedding: number[];
 }
 
-async function upsertWithRetry(records: BillRecord[], retries = 0) {
+async function wait(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function upsertWithRetry(
+	records: BillRecord[],
+	retries = 0,
+	delay = INITIAL_RETRY_DELAY,
+): Promise<void> {
 	try {
 		const { error } = await supabase.from("bills").upsert(records, {
 			onConflict: "package_id",
 		});
 
 		if (error) {
-			if (error.code === "57014" && retries < MAX_RETRIES) {
+			if (retries < MAX_RETRIES) {
+				const nextDelay = Math.min(delay * 2, MAX_RETRY_DELAY);
+				console.log(`⚠️ Error: ${error.message}`);
 				console.log(
-					`⚠️ Timeout error, retrying... (${retries + 1}/${MAX_RETRIES})`,
+					`Retrying in ${delay / 1000}s... (Attempt ${
+						retries + 1
+					}/${MAX_RETRIES})`,
 				);
-				await new Promise((resolve) => setTimeout(resolve, TIMEOUT_DELAY));
-				return upsertWithRetry(records, retries + 1);
+				await wait(delay);
+				return upsertWithRetry(records, retries + 1, nextDelay);
 			}
 			throw error;
 		}
 	} catch (error) {
-		console.error("❌ Upsert Error:", {
+		if (retries < MAX_RETRIES) {
+			const nextDelay = Math.min(delay * 2, MAX_RETRY_DELAY);
+			console.log(
+				`⚠️ Upsert failed, retrying in ${delay / 1000}s... (Attempt ${
+					retries + 1
+				}/${MAX_RETRIES})`,
+			);
+			await wait(delay);
+			return upsertWithRetry(records, retries + 1, nextDelay);
+		}
+		console.error(`❌ Upsert Error after ${retries} retries:`, {
 			error,
 			batchSize: records.length,
-			retryAttempt: retries + 1,
 		});
+		throw error;
+	}
+}
+
+// Also add retry logic for OpenAI embeddings
+async function getEmbeddingsWithRetry(
+	titles: string[],
+	retries = 0,
+	delay = INITIAL_RETRY_DELAY,
+) {
+	try {
+		return await openai.embeddings.create({
+			model: "text-embedding-ada-002",
+			input: titles,
+		});
+	} catch (error) {
+		if (retries < MAX_RETRIES) {
+			const nextDelay = Math.min(delay * 2, MAX_RETRY_DELAY);
+			console.log(
+				`⚠️ OpenAI API error, retrying in ${delay / 1000}s... (Attempt ${
+					retries + 1
+				}/${MAX_RETRIES})`,
+			);
+			await wait(delay);
+			return getEmbeddingsWithRetry(titles, retries + 1, nextDelay);
+		}
 		throw error;
 	}
 }
@@ -117,10 +167,9 @@ async function syncBills(startOffset?: string): Promise<void> {
 			for (let i = 0; i < bills.length; i += BATCH_SIZE) {
 				const batch = bills.slice(i, i + BATCH_SIZE);
 				try {
-					const embedding = await openai.embeddings.create({
-						model: "text-embedding-ada-002",
-						input: batch.map((bill: GovBill) => bill.title),
-					});
+					const embedding = await getEmbeddingsWithRetry(
+						batch.map((bill: GovBill) => bill.title),
+					);
 
 					const records = batch.map((bill: GovBill, index: number) => ({
 						package_id: bill.packageId,
@@ -136,7 +185,9 @@ async function syncBills(startOffset?: string): Promise<void> {
 					successfulBills += batch.length;
 				} catch (error) {
 					failedBatches++;
-					console.error("❌ Batch failed, continuing...");
+					console.error(
+						`❌ Batch failed after all retries, continuing with next batch...`,
+					);
 				}
 			}
 
