@@ -29,7 +29,7 @@ async function searchBillsWithRetry(
 		const { data, error } = await supabase.rpc("match_bills_by_date", {
 			query_embedding: embedding,
 			match_threshold: 0.7,
-			match_count: 2,
+			match_count: 10,
 			start_date: startDate,
 			end_date: endDate,
 		});
