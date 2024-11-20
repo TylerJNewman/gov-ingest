@@ -186,7 +186,7 @@ async function syncBills(startOffset?: string): Promise<void> {
 				} catch (error) {
 					failedBatches++;
 					console.error(
-						`❌ Batch failed after all retries, continuing with next batch...`,
+						"❌ Batch failed after all retries, continuing with next batch...",
 					);
 				}
 			}
