@@ -218,7 +218,4 @@ async function syncBills(startOffset?: string): Promise<void> {
 	}
 }
 
-// Run it with the offset where it stopped
-syncBills("AoJ4qd3B948DMUJJTExTLTExNGhyNDg4N3Jz").catch(console.error);
-
-syncBills("AoJ4qd3B948DMUJJTExTLTExNGhyNDg4N3Jz").catch(console.error);
+syncBills("AoJws8u/948DNUJJTExTLTExN2hjb25yZXMxMDJpaA==").catch(console.error);
