@@ -1,6 +1,6 @@
-# Bill Search API
+# Congressional Bill Data Loader
 
-A TypeScript-based API that performs semantic search on congressional bills using OpenAI embeddings and Supabase vector search.
+A collection of TypeScript scripts for loading and searching congressional bills using OpenAI embeddings and Supabase vector storage.
 
 ## Setup
 
@@ -18,33 +18,44 @@ npm install
 ```env
 OPENAI_API_KEY=your_openai_key
 SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
+SUPABASE_ANON_KEY=your_supabase_key
+GOV_INFO_API_KEY=your_govinfo_key
 ```
 
-## Usage
+## Scripts
 
-Run the search script:
+### Data Loading
 
 ```bash
+# Load bills into database
+npm run sync
+
+# Watch mode for development
+npm run sync:watch
+```
+
+### Search
+
+```bash
+# Search bills
 npm run search
-```
 
-Or with ts-node directly:
-
-```bash
-ts-node src/search.ts
+# Watch mode for development
+npm run search:watch
 ```
 
 ## Features
 
-- Semantic search using OpenAI embeddings
-- Date-range filtering for bills
-- Automatic retry on timeout
-- Vector similarity search via Supabase
+- Loads congressional bills from GovInfo API
+- Generates embeddings using OpenAI
+- Stores bills and embeddings in Supabase
+- Vector similarity search capabilities
+- Date-range filtering
+- Automatic retry logic for API failures
 
 ## Database Schema
 
-The Supabase database includes a `bills` table with the following key fields:
+The Supabase database includes a `bills` table with the following fields:
 
 - `package_id`: Unique identifier for the bill
 - `title`: Bill title
@@ -53,12 +64,16 @@ The Supabase database includes a `bills` table with the following key fields:
 - `doc_class`: Document classification
 - `embedding`: Vector embedding of bill content
 
-## API Reference
+## Stored Procedures
 
-### `search(query: string, startDate: string, endDate: string)`
+### `match_bills_by_date`
 
-Performs a semantic search on bills within the specified date range.
+Performs vector similarity search with date range filtering.
 
-### `match_bills_by_date` (Supabase Function)
+Parameters:
 
-Stored procedure that handles vector similarity search with date filtering.
+- `query_embedding`: Vector to match against
+- `match_threshold`: Minimum similarity threshold
+- `match_count`: Maximum number of results
+- `start_date`: Start of date range
+- `end_date`: End of date range
