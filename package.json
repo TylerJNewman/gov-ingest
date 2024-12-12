@@ -7,10 +7,10 @@
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write '**/*.{js,json,md}'",
-    "start": "ts-node src/syncBills.ts",
-    "dev": "ts-node-dev --respawn --transpile-only src/syncBills.ts",
-    "sync": "ts-node src/syncBills.ts",
-    "sync:watch": "ts-node-dev --respawn --transpile-only src/syncBills.ts",
+    "start": "ts-node src/syncLenders.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/syncLenders.ts",
+    "sync": "ts-node src/syncLenders.ts",
+    "sync:watch": "ts-node-dev --respawn --transpile-only src/syncLenders.ts",
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "search": "ts-node src/search.ts",
@@ -22,10 +22,13 @@
   "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.1",
+    "@trigger.dev/sdk": "^3.3.6",
     "dotenv": "^16.3.1",
-    "openai": "^4.24.1"
+    "openai": "^4.24.1",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
+    "@trigger.dev/build": "^3.3.6",
     "@types/node": "^20.10.6",
     "@types/pg": "^8.10.9",
     "@types/pg-format": "^1.0.5",
@@ -33,5 +36,6 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
-  }
+  },
+  "packageManager": "pnpm@9.0.4+sha512.c374b52de3de88c58fd8333df664a737279cdb0e1344ba4054d3b1fffa9a1a3670854f755dca4f16adea3f14be9896a7fcaf167409fe0c1ad60475271dafe81a"
 }
