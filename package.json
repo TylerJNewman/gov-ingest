@@ -7,7 +7,7 @@
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write '**/*.{js,json,md}'",
-    "start": "ts-node src/syncLenders.ts",
+    "start": "pnpm run sync:all",
     "dev": "ts-node-dev --respawn --transpile-only src/syncLenders.ts",
     "build": "tsc",
     "type-check": "tsc --noEmit",
