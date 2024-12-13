@@ -108,7 +108,9 @@ async function syncLenderVectors(): Promise<void> {
     password: getEnvVar("POSTGRES_PASSWORD"),
     host: getEnvVar("POSTGRES_HOST"),
     database: getEnvVar("POSTGRES_DATABASE"),
-    ssl: process.env.NODE_ENV === 'production'
+    ssl: {
+      rejectUnauthorized: false // Required for some PostgreSQL providers
+    },
   });
 
   try {

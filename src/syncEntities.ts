@@ -108,7 +108,9 @@ async function syncEntityVectors(): Promise<void> {
     password: getEnvVar("POSTGRES_PASSWORD"),
     host: getEnvVar("POSTGRES_HOST"),
     database: getEnvVar("POSTGRES_DATABASE"),
-    ssl: process.env.NODE_ENV === 'production',
+    ssl: {
+      rejectUnauthorized: false // Required for some PostgreSQL providers
+    },
     // Add timeout settings
     statement_timeout: 30000, // 30 seconds
     query_timeout: 30000,     // 30 seconds
