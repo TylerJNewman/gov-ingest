@@ -14,7 +14,8 @@
     "search": "ts-node src/search.ts",
     "search:watch": "ts-node-dev --respawn --transpile-only src/search.ts",
     "sync:entities": "ts-node src/syncEntities.ts",
-    "sync:lenders": "ts-node src/syncLenders.ts"
+    "sync:lenders": "ts-node src/syncLenders.ts",
+    "sync:all": "pnpm run sync:lenders && pnpm run sync:entities"
   },
   "keywords": [],
   "author": "Tyler Newman",
